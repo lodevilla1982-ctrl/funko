@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Funko Designer</title>
+</head>
+<body>
+    <h1>Diseñador de Funko</h1>
+    <form action="/generate" method="post">
+        <label for="part">Parte del modelo:</label>
+        <select name="part">
+            <option value="cabeza">Cabeza</option>
+            <option value="pelo">Pelo</option>
+            <option value="gorro">Gorro</option>
+            <option value="cuerpo">Cuerpo</option>
+            <option value="brazo_izquierdo">Brazo Izquierdo</option>
+            <option value="brazo_derecho">Brazo Derecho</option>
+            <option value="pierna_izquierda">Pierna Izquierda</option>
+            <option value="pierna_derecha">Pierna Derecha</option>
+            <option value="zapato_izquierdo">Zapato Izquierdo</option>
+            <option value="zapato_derecho">Zapato Derecho</option>
+            <option value="ojo_blanco">Ojo Blanco</option>
+            <option value="pupila">Pupila</option>
+            <option value="detalle_torso">Detalle Torso</option>
+            <option value="lunares_encastrables">Lunares Encastrables</option>
+        </select><br><br>
+        <label for="tolerance">Tolerancia (ej. -0.1 o -0.05):</label>
+        <input type="text" name="tolerance" value="-0.1"><br><br>
+        <label for="scale">Altura total (cm):</label>
+        <input type="text" name="scale" value="10"><br><br>
+        <input type="submit" value="Generar STL">
+    </form>
+</body>
+</html>

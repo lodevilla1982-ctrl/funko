@@ -1,31 +1,55 @@
-import os
-from flask import Flask, render_template, request, send_from_directory
+import streamlit as st
+import zipfile
+import io
 import trimesh
+import numpy as np
 
-app = Flask(__name__)
+st.title("Generador de figuras tipo Funko para impresión FDM")
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# Parámetros de entrada
+tolerancia = st.selectbox("Tolerancia de encastre", ["-0.1 mm", "-0.05 mm"])
+escala_cm = st.slider("Altura total del modelo (cm)", min_value=5, max_value=20, value=10)
 
-@app.route("/generate", methods=["POST"])
-def generate():
-    part = request.form.get("part")
-    tolerance = float(request.form.get("tolerance"))
-    scale = float(request.form.get("scale"))
+# Botón para generar modelo
+if st.button("Generar modelo y descargar ZIP"):
+    stl_files = {}
 
-    # Create a simple cube mesh as placeholder for the part
-    mesh = trimesh.creation.box(extents=(1.0, 1.0, 1.0))
-    mesh.apply_scale(scale / 10.0)
+    def crear_parte(nombre, posicion):
+        size = 10.0
+        mesh = trimesh.creation.box(extents=[size, size, size])
+        mesh.apply_translation(posicion)
+        factor = escala_cm / 10.0
+        mesh.apply_scale(factor)
+        tol_valor = -0.1 if tolerancia == "-0.1 mm" else -0.05
+        mesh.apply_scale([1 + tol_valor / 10.0, 1, 1])
+        stl_data = mesh.export(file_type='stl')
+        stl_files[f"{nombre}.stl"] = stl_data
 
-    # Apply tolerance by shrinking or expanding
-    mesh.apply_scale(1.0 + tolerance)
+    crear_parte("cabeza", [0, 0, 0])
+    crear_parte("pelo", [0, 0, 12])
+    crear_parte("gorro", [0, 0, 18])
+    crear_parte("cuerpo", [0, 0, -12])
+    crear_parte("brazo_izquierdo", [-12, 0, -12])
+    crear_parte("brazo_derecho", [12, 0, -12])
+    crear_parte("pierna_izquierda", [-4, 0, -24])
+    crear_parte("pierna_derecha", [4, 0, -24])
+    crear_parte("zapato_izquierdo", [-4, 0, -30])
+    crear_parte("zapato_derecho", [4, 0, -30])
+    crear_parte("ojos_blancos", [0, 4, 4])
+    crear_parte("pupilas", [0, 4, 5])
+    crear_parte("detalles_blancos_torso", [0, 0, -10])
+    crear_parte("orejas_gorro", [6, 0, 20])
+    crear_parte("lunares_integrados", [0, 0, 18])
+    crear_parte("lunares_encastrables", [0, 0, 19])
 
-    filename = f"{part}.stl"
-    filepath = os.path.join("models", filename)
-    mesh.export(filepath)
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        for filename, data in stl_files.items():
+            zip_file.writestr(filename, data)
 
-    return send_from_directory("models", filename, as_attachment=True)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    st.download_button(
+        label="Descargar STL ZIP",
+        data=zip_buffer.getvalue(),
+        file_name="funko_parts.zip",
+        mime="application/zip"
+    )
